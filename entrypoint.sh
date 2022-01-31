@@ -2,8 +2,14 @@
 
 docker_run="docker run"
 
+HEALTHCHECK_USER=""
+HEALTHCHECK_PASS=""
+
 if [ -n "$INPUT_MYSQL_ROOT_PASSWORD" ]; then
   echo "Root password not empty, use root superuser"
+
+  HEALTHCHECK_USER="root"
+  HEALTHCHECK_PASS="$INPUT_MYSQL_ROOT_PASSWORD"
 
   docker_run="$docker_run -e MYSQL_ROOT_PASSWORD=$INPUT_MYSQL_ROOT_PASSWORD"
 elif [ -n "$INPUT_MYSQL_USER" ]; then
@@ -13,6 +19,9 @@ elif [ -n "$INPUT_MYSQL_USER" ]; then
   fi
 
   echo "Use specified user and password"
+
+  HEALTHCHECK_USER="$INPUT_MYSQL_USER"
+  HEALTHCHECK_PASS="$INPUT_MYSQL_PASSWORD"
 
   docker_run="$docker_run -e MYSQL_RANDOM_ROOT_PASSWORD=true -e MYSQL_USER=$INPUT_MYSQL_USER -e MYSQL_PASSWORD=$INPUT_MYSQL_PASSWORD"
 else
@@ -26,7 +35,14 @@ if [ -n "$INPUT_MYSQL_DATABASE" ]; then
   docker_run="$docker_run -e MYSQL_DATABASE=$INPUT_MYSQL_DATABASE"
 fi
 
-docker_run="$docker_run -d -p $INPUT_HOST_PORT:$INPUT_CONTAINER_PORT mysql:$INPUT_MYSQL_VERSION --port=$INPUT_CONTAINER_PORT"
+docker_run="$docker_run -d --name mysql -p $INPUT_HOST_PORT:$INPUT_CONTAINER_PORT mysql:$INPUT_MYSQL_VERSION --port=$INPUT_CONTAINER_PORT"
 docker_run="$docker_run --character-set-server=$INPUT_CHARACTER_SET_SERVER --collation-server=$INPUT_COLLATION_SERVER --default-authentication-plugin=$INPUT_AUTHENTICATION_PLUGIN"
 
 sh -c "$docker_run"
+
+while ! docker exec mysql mysql -h"127.0.0.1" -P"$INPUT_HOST_PORT" -u"$HEALTHCHECK_USER" -p"$HEALTHCHECK_PASS" -e "SELECT 1" $INPUT_MYSQL_DATABASE &> /dev/null; do
+    echo "MySQL is unavailable - sleeping"
+    sleep 1
+done
+
+echo "MySQL is available"
