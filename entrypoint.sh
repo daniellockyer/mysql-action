@@ -2,6 +2,11 @@
 
 docker_run="docker run"
 
+if [ "$INPUT_USE_TMPFS" == "true" ]; then
+  echo "Using tmpfs"
+  docker_run="$docker_run --tmpfs /var/lib/mysql:rw,noexec,nosuid,size=$INPUT_TMPFS_SIZE"
+fi
+
 HEALTHCHECK_USER=""
 HEALTHCHECK_PASS=""
 

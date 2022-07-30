@@ -45,6 +45,14 @@ inputs:
     description: 'Set authentication plugin. Login/password is used as default. Changes default behaviour of MySQL 8.0+, where `caching_sha2_password` is a default value.'
     required: false
     default: 'mysql_native_password'
+  use tmpfs:
+    description: "Whether or not to use Docker's tmpfs feature for MySQL's storage"
+    required: false
+    default: true
+  tmpfs size:
+    description: "Desired size of tmpfs volume"
+    required: false
+    default: "3072M"
 runs:
   using: 'docker'
   image: 'Dockerfile'
