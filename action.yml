@@ -20,7 +20,7 @@ inputs:
   collation server:
     description: '--collation-server - The character collation of MySQL server'
     required: false
-    default: 'utf8mb4_general_ci'
+    default: 'utf8mb4_0900_ai_ci'
   mysql version:
     description: 'Version of MySQL to use'
     required: false
